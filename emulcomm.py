@@ -1002,7 +1002,7 @@ def listenformessage(localip, localport):
     if _is_addr_in_use_exception(e):  
     # Call _conn_cleanup_check to determine if this is because
     # the socket is being cleaned up or if it is actively being used or
-    # if there is an existing listening socket 
+    # if there is an existin Mlistening socket 
     # This will always raise DuplicateTupleError or
     # CleanupInProgressError or AlreadyListeningError  
       _conn_cleanup_check(identity)
@@ -1136,6 +1136,10 @@ def _timed_conn_initialize(localip,localport,destip,destport, timeout):
 
   # Get a TCP socket bound to the local ip / port
   sock = _get_tcp_socket(localip, localport)
+# Modification 3
+  sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 10000)
+  sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 10000)
+
   sock.settimeout(timeout)
 
   try:
@@ -1406,7 +1410,11 @@ def listenforconnection(localip, localport):
     # Check if localip is on loopback
     on_loopback = _is_loopback_ipaddr(localip)
     # Get the socket
-    sock = _get_tcp_socket(localip,localport)     
+    sock = _get_tcp_socket(localip,localport)
+# Modification 4
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 10000)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 10000)    
+
     nanny.tattle_add_item('insockets',id(sock))
     # Get the maximum number of outsockets
     max_outsockets = nanny.get_resource_limit("outsockets")        
@@ -1468,6 +1476,10 @@ def _get_tcp_socket(localip, localport):
 def _get_udp_socket(localip, localport):
   # Create the UDP socket
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# Modification 2
+  s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 66000)
+  s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 66000)
+	
   if localip and localport:
     try:
       s.bind((localip, localport))
@@ -1978,7 +1990,9 @@ class UDPServerSocket:
       if self.on_loopback:
         nanny.tattle_quantity('looprecv', 64 + len(message))
       else:
-        nanny.tattle_quantity('netrecv', 64 + len(message))
+# Modification 1 here.
+#        nanny.tattle_quantity('netrecv', 64 + len(message))
+	nanny.tattle_quantity('looprecv', 64 + len(message))
 
       # Return everything
       return (remote_ip, remote_port, message)
