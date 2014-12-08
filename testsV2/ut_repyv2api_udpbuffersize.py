@@ -9,7 +9,8 @@ targetport = 12346
 timeout = 1.0
 mycontext['maxlag'] = 0
 #fp = openfile("test1.log", True)
-#mycontext['count'] = 0
+mycontext['count'] = 0
+mycontext['sum'] = 0.0
 
 def foreversend():
   while True:
@@ -20,6 +21,8 @@ def handleconnection(sock_s):
   while True:
     (ip, port, message) = sock_s.getmessage()
     lag = getruntime() - float(message.split()[0])
+    mycontext['count'] += 1
+    mycontext['sum'] += lag
 #    fp.writeat(str(lag) + '              ', mycontext['count'])
 #    mycontext['count'] = mycontext['count'] + 15
 #    log(lag)
@@ -33,6 +36,7 @@ def time_set():
     log("TCP packets has lagged too long in the buffer: ", mycontext['maxlag'])
   if mycontext['maxlag'] == 0:
     log("0 lag detected")
+  log("Average lag time: ", mycontext['sum']/mycontext['count'])
   exitall()
 
 createthread(time_set)
